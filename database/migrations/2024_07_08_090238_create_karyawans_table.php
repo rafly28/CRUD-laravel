@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -12,10 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('karyawan', function (Blueprint $table) {
-            $table->integer('nip');
-            $table->unique('nip');
-            $table->string('nama');
-            $table->string('divisi');
+            $table->integer('nip')->unique();
+            $table->string('nama')->unique();
+            $table->uuid('uuid')->unique()->default(Str::uuid());
+            $table->enum('divisi', ['HR', 'Finance', 'Marcom', 'IT']);
+            $table->timestamps();
         });
     }
 

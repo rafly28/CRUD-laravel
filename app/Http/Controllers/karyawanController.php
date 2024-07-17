@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\karyawan;
+use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
-class karyawanController extends Controller
+class KaryawanController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,13 +15,13 @@ class karyawanController extends Controller
     {
         $katakunci = $request->katakunci;
         $jumlahbaris = 4;
-        if(strlen($katakunci)){
-            $data = karyawan::where('nip','like',"%katakunci%")
-                ->orWhere('nama','like',"%katakunci%")
-                ->orWhere('divisi','like',"%katakunci%")
+        if (strlen($katakunci)) {
+            $data = Karyawan::where('nip', 'like', "%$katakunci%")
+                ->orWhere('nama', 'like', "%$katakunci%")
+                ->orWhere('divisi', 'like', "%$katakunci%")
                 ->paginate($jumlahbaris);
-        }else{
-            $data = karyawan::orderBy('nip', 'desc')->paginate(5);
+        } else {
+            $data = Karyawan::orderBy('nip', 'desc')->paginate(5);
         }
         return view('karyawan.index')->with('data', $data);
     }
@@ -39,27 +39,35 @@ class karyawanController extends Controller
      */
     public function store(Request $request)
     {
-        Session::flash('nip',$request->nip);
-        Session::flash('nama',$request->nama);
-        Session::flash('divisi',$request->divisi);
+        Session::flash('nip', $request->nip);
+        Session::flash('nama', $request->nama);
+        Session::flash('divisi', $request->divisi);
+        Session::flash('role', $request->role);
+
         $request->validate([
-            'nip'=>'required|numeric|unique:karyawan,nip',
-            'nama'=>'required',
-            'divisi'=>'required',
-        ],[
-            'nip.required'=>'NIP WAJIB DIISI',
-            'nip.numeric'=>'NIP WAJIB DALAM ANGKA',
-            'nip.unique'=>'NIP SUDAH ADA DIDALAM DATABASE',
-            'nama.required'=>'NAMA WAJIB DIISI',
-            'divisi.required'=>'DIVISI WAJIB DIISI',
+            'nip' => 'required|numeric|digits_between:1,10|unique:karyawan,nip',
+            'nama' => 'required',
+            'divisi' => 'required',
+            'role' => 'required|in:Manager,Team Lead,Staff',
+        ], [
+            'nip.required' => 'NIP WAJIB DIISI',
+            'nip.numeric' => 'NIP WAJIB DALAM ANGKA',
+            'nip.digits_between' => 'NIP MAKSIMAL 10 KARAKTER',
+            'nip.unique' => 'NIP SUDAH ADA DIDALAM DATABASE',
+            'nama.required' => 'NAMA WAJIB DIISI',
+            'divisi.required' => 'DIVISI WAJIB DIISI',
+            'role.required' => 'ROLE WAJIB DIISI',
+            'role.in' => 'ROLE TIDAK VALID',
         ]);
+
         $data = [
-            'nip'=>$request->nip,
-            'nama'=>$request->nama,
-            'divisi'=>$request->divisi,
+            'nip' => $request->nip,
+            'nama' => $request->nama,
+            'divisi' => $request->divisi,
+            'role' => $request->role,
         ];
-        karyawan::create($data);
-        return redirect()->to('karyawan')->with('success','BERHASIL MENAMBAHKAN DATA');
+        Karyawan::create($data);
+        return redirect()->to('karyawan')->with('success', 'BERHASIL MENAMBAHKAN DATA');
     }
 
     /**
@@ -75,8 +83,8 @@ class karyawanController extends Controller
      */
     public function edit(string $id)
     {
-        $data = karyawan::where('nip',$id)->first();
-        return view('karyawan.edit')->with('data',$data);
+        $data = Karyawan::where('nip', $id)->first();
+        return view('karyawan.edit')->with('data', $data);
     }
 
     /**
@@ -85,18 +93,23 @@ class karyawanController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'nama'=>'required',
-            'divisi'=>'required',
-        ],[
-            'nama.required'=>'NAMA WAJIB DIISI',
-            'divisi.required'=>'DIVISI WAJIB DIISI',
+            'nama' => 'required',
+            'divisi' => 'required',
+            'role' => 'required|in:Manager,Team Lead,Staff',
+        ], [
+            'nama.required' => 'NAMA WAJIB DIISI',
+            'divisi.required' => 'DIVISI WAJIB DIISI',
+            'role.required' => 'ROLE WAJIB DIISI',
+            'role.in' => 'ROLE TIDAK VALID',
         ]);
+
         $data = [
-            'nama'=>$request->nama,
-            'divisi'=>$request->divisi,
+            'nama' => $request->nama,
+            'divisi' => $request->divisi,
+            'role' => $request->role,
         ];
-        karyawan::where('nip',$id)->update($data);
-        return redirect()->to('karyawan')->with('success','BERHASIL MELAKUKAN PERUBAHAN DATA');
+        Karyawan::where('nip', $id)->update($data);
+        return redirect()->to('karyawan')->with('success', 'BERHASIL MELAKUKAN PERUBAHAN DATA');
     }
 
     /**
@@ -104,7 +117,7 @@ class karyawanController extends Controller
      */
     public function destroy(string $id)
     {
-        karyawan::where('nip',$id)->delete();
-        return redirect()->to('karyawan')->with('success','BERHASIL MELAKUKAN DELETE DATA');
+        Karyawan::where('nip', $id)->delete();
+        return redirect()->to('karyawan')->with('success', 'BERHASIL MELAKUKAN DELETE DATA');
     }
 }

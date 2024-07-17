@@ -6,13 +6,13 @@
     <!-- FORM PENCARIAN -->
     <div class="pb-3">
         <form class="d-flex" action="{{ url('karyawan') }}" method="get">
-            <input class="form-control me-1" type="search" name="katakunci" value="{{ Request::get('katakunci') }}" placeholder="Masukkan kata kunci" aria-label="Search">
+            <input class="form-control me-1" type="search" name="katakunci" value="{{ Request::get('katakunci') }}" placeholder="Ketik disini" aria-label="Search">
             <button class="btn btn-secondary" type="submit">Cari</button>
         </form>
     </div>
     
     <!-- TOMBOL TAMBAH DATA -->
-    <div class="pb-3">
+    <div class="pb-3 d-flex justify-content-end">
         <a href='{{ url('karyawan/create') }}' class="btn btn-primary">+ Tambah Data</a>
     </div>
 
@@ -20,9 +20,10 @@
         <thead>
             <tr>
                 <th class="col-md-1">No</th>
-                <th class="col-md-3">NIP</th>
-                <th class="col-md-4">Nama</th>
+                <th class="col-md-2">NIP</th>
+                <th class="col-md-3">Nama</th>
                 <th class="col-md-2">Divisi</th>
+                <th class="col-md-2">Jabatan</th>
                 <th class="col-md-2">Action</th>
             </tr>
         </thead>
@@ -35,6 +36,7 @@
                 <td>{{ $item->nip }}</td>
                 <td>{{ $item->nama }}</td>
                 <td>{{ $item->divisi }}</td>
+                <td>{{ $item->role }}</td>
                 <td>
                     <form onsubmit="return confirm('APAKAH ANDA YAKIN AKAN MENGHAPUS DATA?')" class='d-inline' action="{{ url('karyawan/'.$item->nim) }}" method="POST">
                         @csrf
