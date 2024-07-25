@@ -1,51 +1,47 @@
 name: CI
-
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  laravel-tests:
+  container-setup:
     runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Docker
-      run: |
-        docker pull rafly28/fly-dev:1
-
-    - name: Run Docker container
-      run: |
-        docker run -d -v ${{ github.workspace }}:/app --name laravel-container rafly28/fly-dev:1
-
-    - name: Copy .env
-      run: docker exec laravel-container php -r "file_exists('.env') || copy('.env.example', '.env');"
-
-    - name: Install Dependencies
-      run: docker exec laravel-container composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-
-    - name: Generate key
-      run: docker exec laravel-container php artisan key:generate
-
-    - name: Directory Permissions
-      run: docker exec laravel-container chmod -R 777 storage bootstrap/cache
-
-    - name: Create Database
-      run: |
-        docker exec laravel-container mkdir -p database
-        docker exec laravel-container touch database/database.sqlite
-
-    - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+    container:
+      image: rafly28/fly-dev:1
+      ports:
+        - 80
+      image: mysql:8.0    services:
       env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: database/database.sqlite
-      run: docker exec laravel-container php artisan test
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: laravel_test
+      ports:
+          - 3306:3306
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 
+      
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
 
-    - name: Stop and remove Docker container
-      if: always()
-      run: |
-        docker stop laravel-container
-        docker rm laravel-container
+      - name: Copy .env.example to .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Update .env for MySQL
+        run: |
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel_test/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
+        run: composer test
