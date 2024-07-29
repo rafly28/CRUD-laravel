@@ -6,10 +6,10 @@ on:
     branches: [ main ]
 
 jobs:
-  container-setup:
+  Testing:
     runs-on: ubuntu-latest
     container:
-      image: rafly28/fly-dev:1
+      image: rafly28/fly-dev:1.0
       ports:
         - 80
     services:
@@ -33,7 +33,7 @@ jobs:
       - name: Update .env for MySQL
         run: |
           sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
-          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=mysql/' .env
           sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=laravel_test/' .env
           sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env
